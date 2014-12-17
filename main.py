@@ -24,6 +24,7 @@ def print_help():
 
 def write_json(jsonstr="{}"):
     """Save JSON profile on local filesystem."""
+    scriptdir = os.path.dirname(os.path.abspath(__file__))
     opf = os.path.join(scriptdir, 'json', "profile-"+time.strftime("%Y%m%d-%H%M%S")+".json")
     print("Writing output to " + opf)
     f = open(opf, 'w')
@@ -47,6 +48,14 @@ def post_gist(jsonstr="{}"):
     if req.status_code == 201:
         print("Writing to GitHub: " + req.json()["html_url"])
 
+def generate_key_stats(profile):
+    """Save key statistics in JSON format on local filesystem."""
+    scriptdir = os.path.dirname(os.path.abspath(__file__))
+    opf = os.path.join(scriptdir, 'json', "keystats-"+time.strftime("%Y%m%d-%H%M%S")+".json")
+    f = open(opf, 'w')
+    json.dump(profile.count_keys(), f, sort_keys=True, indent=4, separators=(',', ': '))
+    f.close()
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print_help()
@@ -69,6 +78,7 @@ if __name__ == "__main__":
     cp.process_cdxes(sys.argv[1:])
     cp.calculate_stats()
     p.stats = cp.stats
+    p.count_keys()
     jsonstr = p.to_json()
     write_json(jsonstr)
     post_gist(jsonstr)

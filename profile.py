@@ -36,3 +36,27 @@ class Profile(object):
         """Serializes processed profile object in JSON format."""
         print("Converting to JSNON...")
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4, separators=(',', ': '))
+
+    def count_keys(self):
+        """Generates statistics on profile keys."""
+        print("Generating key statistics...")
+        path = {}
+        domain = {}
+        for k in self.stats["suburi"].keys():
+            path_depth = k.strip("/").count("/")
+            if path_depth > 0:
+                try:
+                    path[path_depth] += 1
+                except KeyError, e:
+                    path[path_depth] = 1
+            else:
+                try:
+                    domain[k.split(")")[0].count(",")+1] += 1
+                except KeyError, e:
+                    domain[k.split(")")[0].count(",")+1] = 1
+        key_stats = {"time": len(self.stats["time"]),
+                     "mediatype": len(self.stats["mediatype"]),
+                     "language": len(self.stats["language"]),
+                     "suburi": {"domain_depth": domain, "path_depth": path}}
+        setattr(self, "_key_stats", key_stats)
+        return key_stats

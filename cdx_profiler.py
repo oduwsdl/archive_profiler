@@ -60,11 +60,12 @@ class CDXProfiler(object):
         """Update data structure after processing a line from the CDX"""
         suburis = self._generate_unique_suburis(entry)
         for s in suburis:
-            self._update_record(self.stats["suburi"], s, entry.surt)
-        self._update_record(self.stats["time"], entry.time[0:6], entry.surt)
-        self._update_record(self.stats["mediatype"], entry.mime, entry.surt)
+            self._update_record("suburi", s, entry.surt)
+        self._update_record("time", entry.time[0:6], entry.surt)
+        self._update_record("mediatype", entry.mime, entry.surt)
 
     def _generate_unique_suburis(self, entry):
+        """Generate a unique set of suburis from the canonical URI according to the host_depth and path_depth configs."""
         host, path = entry.surt.split("?")[0].split(")")
         path = path.strip("/")
         suburis = []
@@ -76,7 +77,9 @@ class CDXProfiler(object):
             suburis.append(host + ")/" + "/".join(pparts[0:i]))
         return set(suburis)
 
-    def _update_record(self, entry_point, key, surt):
+    def _update_record(self, key_type, key, surt):
+        """Insert or update raw records to keep track of URI-R and URI-M counts under each key."""
+        entry_point = self.stats[key_type]
         try:
             entry_point[key]["surt"][surt] += 1
         except KeyError, e:
@@ -86,6 +89,7 @@ class CDXProfiler(object):
                 entry_point[key]["surt"][surt] = 1
 
     def _update_stats(self, entry_point):
+        """Consume raw datastrcuture to calculate summarized statistics."""
         for e in entry_point.itervalues():
             s = e["surt"].values()
             count = len(s)
