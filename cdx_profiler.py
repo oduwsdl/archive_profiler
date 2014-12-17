@@ -66,8 +66,9 @@ class CDXProfiler(object):
 
     def _generate_unique_suburis(self, entry):
         """Generate a unique set of suburis from the canonical URI according to the host_depth and path_depth configs."""
-        host, path = entry.surt.split("?")[0].split(")")
-        path = path.strip("/")
+        parts = entry.surt.split("?")[0].split(")")
+        host = parts[0]
+        path = ")".join(parts[1:]).strip("/")
         suburis = []
         hparts = host.split(",")
         for i in range(1, min(len(hparts), self.host_depth)+1):
