@@ -22,22 +22,20 @@ def print_help():
     print("  Multiple CDX files :    main.py abc.cdx def.cdx ...")
     print("  Multiple CDX files :    main.py *.cdx abc/*.cdx ...\n")
 
-def write_json(jsonstr="{}"):
+def write_json(jsonstr="{}", filepath="profile.json"):
     """Save JSON profile on local filesystem."""
-    scriptdir = os.path.dirname(os.path.abspath(__file__))
-    opf = os.path.join(scriptdir, 'json', "profile-"+time.strftime("%Y%m%d-%H%M%S")+".json")
-    print("Writing output to " + opf)
-    f = open(opf, 'w')
+    print("Writing output to " + filepath)
+    f = open(filepath, 'w')
     f.write(jsonstr)
     f.close()
 
-def post_gist(jsonstr="{}"):
+def post_gist(jsonstr="{}", filename="profile.json"):
     """Post JSON profile to GitHub as a Gist."""
     gist = {
         "description": "An archive profile created on "+time.strftime("%Y-%m-%d at %H:%M:%S")+".",
         "public": True,
         "files": {
-            "profile-"+time.strftime("%Y%m%d-%H%M%S")+".json": {
+            filename: {
                 "content": jsonstr
             }
         }
@@ -47,14 +45,6 @@ def post_gist(jsonstr="{}"):
                         auth=(config.get("github", "user"), config.get("github", "token")))
     if req.status_code == 201:
         print("Writing to GitHub: " + req.json()["html_url"])
-
-def generate_key_stats(profile):
-    """Save key statistics in JSON format on local filesystem."""
-    scriptdir = os.path.dirname(os.path.abspath(__file__))
-    opf = os.path.join(scriptdir, 'json', "keystats-"+time.strftime("%Y%m%d-%H%M%S")+".json")
-    f = open(opf, 'w')
-    json.dump(profile.count_keys(), f, sort_keys=True, indent=4, separators=(',', ': '))
-    f.close()
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -74,11 +64,18 @@ if __name__ == "__main__":
                 profile_updated=time.strftime("%Y-%m-%dT%H:%M:%SZ"),
                 mechanism="https://oduwsdl.github.io/terms/mechanism#cdx")
     cp = CDXProfiler(max_host_segments=config.get("profile", "max_host_segments"),
-                     max_path_segments=config.get("profile", "max_path_segments"))
+                     max_path_segments=config.get("profile", "max_path_segments"),
+                     global_stats=config.getboolean("profile", "generate_global_stats"))
     cp.process_cdxes(sys.argv[1:])
     cp.calculate_stats()
     p.stats = cp.stats
-    p.count_keys()
+    if config.getboolean("profile", "generate_key_stats"):
+        p.count_keys()
     jsonstr = p.to_json()
-    write_json(jsonstr)
-    post_gist(jsonstr)
+    opf = "profile-"+time.strftime("%Y%m%d-%H%M%S")+".json"
+    if config.getboolean("output", "write_to_file"):
+        write_json(jsonstr, filepath=os.path.join(scriptdir, 'json', opf))
+    else:
+        print(jsonstr)
+    if config.getboolean("output", "write_to_github"):
+        post_gist(jsonstr, filename=opf)

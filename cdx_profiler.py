@@ -19,7 +19,7 @@ import time
 class CDXProfiler(object):
     """Profiling an archive using CDX files."""
 
-    def __init__(self, max_host_segments=3, max_path_segments=0):
+    def __init__(self, max_host_segments=3, max_path_segments=0, global_stats=False):
         """Initialize with a basic object to store stats."""
         print("Initializing CDX profiler...")
         try:
@@ -30,6 +30,7 @@ class CDXProfiler(object):
             self.max_path_segments = int(max_path_segments)
         except ValueError:
             self.max_path_segments = None
+        self.global_stats = global_stats
         self.stats = {"suburi": {}, "time": {}, "mediatype": {}, "language": {}}
 
     def process_cdxes(self, *cdxs):
@@ -41,9 +42,11 @@ class CDXProfiler(object):
     def calculate_stats(self):
         """Calculates statistics from the raw profile data structure and prepares the profile object for serialization."""
         print("Calculating statistics...")
-        self._update_stats(self.stats["suburi"])
-        self._update_stats(self.stats["time"])
-        self._update_stats(self.stats["mediatype"])
+        self._calculate_section_stats(self.stats["suburi"])
+        self._calculate_section_stats(self.stats["time"])
+        self._calculate_section_stats(self.stats["mediatype"])
+        if self.global_stats:
+            self._calculate_global_stats()
 
     def _process_cdx(self, cdx):
         """Accepts a CDX file and processes it to extract neccessary information and builds a raw data structure."""
@@ -82,9 +85,9 @@ class CDXProfiler(object):
             if e.message == surt:
                 entry_point[key]["surt"][surt] = 1
 
-    def _update_stats(self, entry_point):
-        """Consume raw datastrcuture to calculate summarized statistics."""
-        for e in entry_point.itervalues():
+    def _calculate_section_stats(self, section):
+        """Consume raw datastrcuture to calculate summarized statistics of each section."""
+        for e in section.itervalues():
             s = e["surt"].values()
             count = len(s)
             total = sum(s)
@@ -93,3 +96,15 @@ class CDXProfiler(object):
             e["urir"] = count
             e["urim"] = {"total": total, "min": minm, "max": maxm}
             del e["surt"]
+
+    def _calculate_global_stats(self):
+        """Accumulate TLD stats to calculate global summarized statistics."""
+        count, total, minm, maxm = 0, 0, 1, 1
+        for k, v in self.stats["suburi"].iteritems():
+            if k.count(",") == 0:
+                count += v["urir"]
+                total += v["urim"]["total"]
+                minm = min(minm, v["urim"]["min"])
+                maxm = max(maxm, v["urim"]["max"])
+        self.stats["urir"] = count
+        self.stats["urim"] = {"total": total, "min": minm, "max": maxm}
