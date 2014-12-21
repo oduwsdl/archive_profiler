@@ -73,8 +73,8 @@ if __name__ == "__main__":
                 established=config.get("archive", "established"),
                 profile_updated=time.strftime("%Y-%m-%dT%H:%M:%SZ"),
                 mechanism="https://oduwsdl.github.io/terms/mechanism#cdx")
-    cp = CDXProfiler(host_depth=config.get("profile", "host_depth"),
-                     path_depth=config.get("profile", "path_depth"))
+    cp = CDXProfiler(max_host_segments=config.get("profile", "max_host_segments"),
+                     max_path_segments=config.get("profile", "max_path_segments"))
     cp.process_cdxes(sys.argv[1:])
     cp.calculate_stats()
     p.stats = cp.stats

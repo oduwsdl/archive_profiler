@@ -8,6 +8,7 @@ import os
 
 os.environ["TLDEXTRACT_CACHE"] = "/tmp/.tld_set"
 
+from suburi_generator import generate_suburis
 from collections import namedtuple, defaultdict
 from urlparse import urlparse
 from surt import surt
@@ -18,11 +19,17 @@ import time
 class CDXProfiler(object):
     """Profiling an archive using CDX files."""
 
-    def __init__(self, host_depth=3, path_depth=0):
+    def __init__(self, max_host_segments=3, max_path_segments=0):
         """Initialize with a basic object to store stats."""
         print("Initializing CDX profiler...")
-        self.host_depth = int(host_depth)
-        self.path_depth = int(path_depth)
+        try:
+            self.max_host_segments = int(max_host_segments)
+        except ValueError:
+            self.max_host_segments = None
+        try:
+            self.max_path_segments = int(max_path_segments)
+        except ValueError:
+            self.max_path_segments = None
         self.stats = {"suburi": {}, "time": {}, "mediatype": {}, "language": {}}
 
     def process_cdxes(self, *cdxs):
@@ -58,25 +65,11 @@ class CDXProfiler(object):
 
     def _update_ds(self, entry):
         """Update data structure after processing a line from the CDX"""
-        suburis = self._generate_unique_suburis(entry)
+        suburis = generate_suburis(entry.surt, max_host_segments=self.max_host_segments, max_path_segments=self.max_path_segments)
         for s in suburis:
             self._update_record("suburi", s, entry.surt)
         self._update_record("time", entry.time[0:6], entry.surt)
         self._update_record("mediatype", entry.mime, entry.surt)
-
-    def _generate_unique_suburis(self, entry):
-        """Generate a unique set of suburis from the canonical URI according to the host_depth and path_depth configs."""
-        parts = entry.surt.split("?")[0].split(")")
-        host = parts[0]
-        path = ")".join(parts[1:]).strip("/")
-        suburis = []
-        hparts = host.split(",")
-        for i in range(1, min(len(hparts), self.host_depth)+1):
-            suburis.append(",".join(hparts[0:i]) + ")/")
-        pparts = path.split("/")
-        for i in range(1, min(len(pparts), self.path_depth)+1):
-            suburis.append(host + ")/" + "/".join(pparts[0:i]))
-        return set(suburis)
 
     def _update_record(self, key_type, key, surt):
         """Insert or update raw records to keep track of URI-R and URI-M counts under each key."""
