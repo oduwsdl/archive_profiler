@@ -25,7 +25,7 @@ def print_help():
 def write_json(jsonstr="{}", filepath="profile.json"):
     """Save JSON profile on local filesystem."""
     print("Writing output to " + filepath)
-    f = open(filepath, 'w')
+    f = open(filepath, "w")
     f.write(jsonstr)
     f.close()
 
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     jsonstr = p.to_json()
     opf = "profile-"+time.strftime("%Y%m%d-%H%M%S")+".json"
     if config.getboolean("output", "write_to_file"):
-        write_json(jsonstr, filepath=os.path.join(scriptdir, 'json', opf))
+        write_json(jsonstr, filepath=os.path.join(scriptdir, "json", opf))
     else:
         print(jsonstr)
     if config.getboolean("output", "write_to_github"):

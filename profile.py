@@ -28,14 +28,14 @@ class Profile(object):
         setattr(self, "@context", "https://oduwsdl.github.io/contexts/archiveprofile.jsonld")
         setattr(self, "@id", homepage)
 
-    def load(self, json=None):
+    def load(self, profile=None):
         """Load a JSON profile and populate the profile object"""
         print("TODO: Yet to implement!")
 
     def to_json(self):
         """Serializes processed profile object in JSON format."""
         print("Converting to JSNON...")
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4, separators=(',', ': '))
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4, separators=(",", ": "))
 
     def count_keys(self):
         """Generates statistics on profile keys."""

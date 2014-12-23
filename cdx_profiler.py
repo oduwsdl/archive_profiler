@@ -31,6 +31,8 @@ class CDXProfiler(object):
         except ValueError:
             self.max_path_segments = None
         self.global_stats = global_stats
+        self.total_lines = 0
+        self.skipped_lines = 0
         self.stats = {"suburi": {}, "time": {}, "mediatype": {}, "language": {}}
 
     def process_cdxes(self, *cdxs):
@@ -54,8 +56,11 @@ class CDXProfiler(object):
         with open(cdx) as f:
             for line in f:
                 entry = self._parse_line(line)
+                self.total_lines += 1
                 if entry and entry.scheme.startswith("http"):
                     self._update_ds(entry)
+                else:
+                    self.skipped_lines += 1
 
     def _parse_line(self, line=""):
         """Parses single line of a CDX file and returns selected and derived attributes in a namedtuple."""
