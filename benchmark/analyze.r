@@ -1,4 +1,14 @@
-profiles <- read.csv("summary.csv", header=T)
+#!/usr/bin/env Rscript
+
+args <- commandArgs(trailingOnly=T)
+if (length(args) < 1) {
+  print("Please pass the CSV file as a command line argument.")
+  quit()
+}
+fpath <- gsub("summary-|.csv$", "", args[1])
+print(paste(fpath, ".png", sep=""))
+
+profiles <- read.csv(args[1], header=T)
 
 print(profiles)
 
@@ -25,24 +35,57 @@ f2si2<-function (number, rounding=F, sep=" ")
 }
 
 
-png("profile-keys-analysis.png", height=500, width=800, pointsize=18)
+xlb <- c("H1", "H2", "H3", "H4", "H5", "Hx", "P1", "P2", "P3", "P4", "P5", "Px")
+kpos <- pretty(c(0, max(profiles$suburi_keys)), n=10)
+klb <- sapply(kpos, FUN=f2si2, rounding=T, sep="")
+spos <- pretty(c(0, max(profiles$profile_size)), n=10)
+slb <- sapply(spos, FUN=f2si2, rounding=T, sep="")
+tpos <- pretty(c(0, max(profiles$profiling_time/60)), n=10)
+tlb <- sapply(tpos, FUN=f2si2, rounding=T, sep="")
+
+keybar <- paste(fpath, "-keys-barplot.png", sep="")
+png(keybar, height=500, width=800, pointsize=18)
 
 par(mar=c(5,9,2,2)+0.1)
-bplt <- barplot(profiles$suburi_keys, names.arg=profiles$profile_id, horiz=T, las=2, xlim=c(0, 500000), axes=F)
-axis(1, at=c(0:10)*50000, labels=sapply(c(0:10)*50000, FUN=f2si2, rounding=T, sep=""))
+bplt <- barplot(profiles$suburi_keys, names.arg=profiles$profile_id, horiz=T, las=2, axes=F, xlim=c(0, max(kpos)))#
+axis(1, at=kpos, labels=klb)
 text(x=profiles$suburi_keys, y=bplt, labels=sapply(profiles$suburi_keys, FUN=f2si2, rounding=T, sep=""), pos=4, offset=0.2, xpd=T)
 title(xlab="Number of Sub-URI Keys")
 
 dev.off()
 
-xlb <- c("H1", "H2", "H3", "H4", "H5", "Hx", "P1", "P2", "P3", "P4", "P5", "Px")
 
-png("profile-keys-line-analysis.png", height=500, width=800, pointsize=18)
+keyline <- paste(fpath, "-keys-lineplot.png", sep="")
+png(keyline, height=500, width=800, pointsize=18)
 
 par(mar=c(4,4,2,2)+0.1)
-plot(profiles$suburi_keys, type='b', xaxt="n", yaxt="n", ylab="", xlab="")
+plot(profiles$suburi_keys, type='b', xaxt="n", yaxt="n", ylab="", xlab="", ylim=c(0, max(kpos)))
 axis(1, at=c(1:12), labels=xlb)
-axis(2, at=c(0:10)*50000, labels=sapply(c(0:10)*50000, FUN=f2si2, rounding=T, sep=""))
+axis(2, at=kpos, labels=klb)
 title(ylab="Number of Sub-URI Keys", xlab="Max segments (H: Host segments, P: Path segments)")
+
+dev.off()
+
+
+sizeline <- paste(fpath, "-filesize-lineplot.png", sep="")
+png(sizeline, height=500, width=800, pointsize=18)
+
+par(mar=c(4,4,2,2)+0.1)
+plot(profiles$profile_size, type='b', xaxt="n", yaxt="n", ylab="", xlab="", ylim=c(0, max(spos)))
+axis(1, at=c(1:12), labels=xlb)
+axis(2, at=spos, labels=slb)
+title(ylab="Profile size", xlab="Max segments (H: Host segments, P: Path segments)")
+
+dev.off()
+
+
+timeline <- paste(fpath, "-time-lineplot.png", sep="")
+png(timeline, height=500, width=800, pointsize=18)
+
+par(mar=c(4,4,2,2)+0.1)
+plot(profiles$profiling_time/60, type='b', xaxt="n", yaxt="n", ylab="", xlab="", ylim=c(0, max(tpos)))
+axis(1, at=c(1:12), labels=xlb)
+axis(2, at=tpos, labels=tlb)
+title(ylab="Profiling time (minutes)", xlab="Max segments (H: Host segments, P: Path segments)")
 
 dev.off()
