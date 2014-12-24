@@ -63,7 +63,7 @@ def build_profile(host, path):
         "stats_calculation_time": stats_calculation_done - cdx_processing_done,
         "profiling_time": profiling_done - profiling_start
     }
-    all_bms[profile_id] = bm
+    all_bms["bms"][profile_id] = bm
     jsonstr = json.dumps(bm, indent=4, separators=(",", ": "))
     opf = "bm-{0}.json".format(profile_id)
     opfpath = os.path.join(scriptdir, "benchmark", opf)
@@ -71,19 +71,19 @@ def build_profile(host, path):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Please provide path(s) to CDX file(s) as command line argument(s)")
+        print("Please provide path(s) to CDX file(s) as command line argument(s).")
         sys.exit(0)
     benchmarking_start = time.time()
     scriptdir = os.path.dirname(os.path.abspath(__file__))
     cdx_size = sum(os.path.getsize(f) for f in sys.argv[1:])
-    all_bms = {"collection": "ukwa-2000"}
+    all_bms = {"about": {"collection": "ukwa-2000"}, "bms": {}}
     path = 0
     for host in [1, 2, 3, 4, 5, "all"]:
         build_profile(host, path)
     for path in [1, 2, 3, 4, 5, "all"]:
         build_profile(host, path)
     benchmarking_done = time.time()
-    all_bms["benchmarking_time"] = benchmarking_done - benchmarking_start
+    all_bms["about"]["benchmarking_time"] = benchmarking_done - benchmarking_start
     jsonstr = json.dumps(all_bms, indent=4, separators=(",", ": "))
     opfpath = os.path.join(scriptdir, "benchmark", "bm-ukwa-2000.json")
     write_json(jsonstr, filepath=opfpath)
