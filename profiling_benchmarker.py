@@ -8,6 +8,7 @@ import os
 import sys
 import json
 import time
+import re
 
 from profile import Profile
 from cdx_profiler import CDXProfiler
@@ -20,11 +21,12 @@ def write_json(jsonstr="{}", filepath="profile.json"):
     f.close()
 
 def build_profile(host, path):
-    print("Profiling UKWA 2000 with Host: {0}, Path: {1}".format(host, path))
-    profile_id = "ukwa-2000-host-{0}-path-{1}".format(host, path)
+    print("Profiling {0} with Host: {1}, Path: {2}".format(collection, host, path))
+    bm_id = "host-{0}-path-{1}".format(host, path)
+    profile_id = "{0}-{1}".format(col_id, bm_id)
     profiling_start = time.time()
-    p = Profile(name="UKWA 2000 Hosts {0} Paths {1}".format(host, path),
-                description="UK Web Archive 2000 collection profile with maximum {0} host and {1} path secgment(s).".format(host, path),
+    p = Profile(name="{0}Hosts {1} Paths {2}".format(collection, host, path),
+                description="{0} collection profile with maximum {1} host and {2} path secgment(s).".format(collection, host, path),
                 homepage="http://www.webarchive.org.uk/ukwa/",
                 accesspoint="http://www.webarchive.org.uk/wayback/",
                 memento_compliance="https://oduwsdl.github.io/terms/mementosupport#native",
@@ -43,12 +45,12 @@ def build_profile(host, path):
     p.stats = cp.stats
     jsonstr = p.to_json()
     opf = "profile-{0}.json".format(profile_id)
-    opfpath = os.path.join(scriptdir, "benchmark", opf)
+    opfpath = os.path.join(bmdir, opf)
     write_json(jsonstr, filepath=opfpath)
     profiling_done = time.time()
     bm = {
         "profile": opf,
-        "collection": "ukwa-2000",
+        "collection": col_id,
         "max_host": host,
         "max_path": path,
         "cdx_size": cdx_size,
@@ -63,10 +65,10 @@ def build_profile(host, path):
         "stats_calculation_time": stats_calculation_done - cdx_processing_done,
         "profiling_time": profiling_done - profiling_start
     }
-    all_bms["bms"][profile_id] = bm
-    jsonstr = json.dumps(bm, indent=4, separators=(",", ": "))
+    all_bms["bms"][bm_id] = bm
+    jsonstr = json.dumps(bm, sort_keys=True, indent=4, separators=(",", ": "))
     opf = "bm-{0}.json".format(profile_id)
-    opfpath = os.path.join(scriptdir, "benchmark", opf)
+    opfpath = os.path.join(bmdir, opf)
     write_json(jsonstr, filepath=opfpath)
 
 if __name__ == "__main__":
@@ -74,9 +76,14 @@ if __name__ == "__main__":
         print("Please provide path(s) to CDX file(s) as command line argument(s).")
         sys.exit(0)
     benchmarking_start = time.time()
+    collection = "Test CDX"
+    col_id = re.sub("\W+", "-", collection.lower())
     scriptdir = os.path.dirname(os.path.abspath(__file__))
+    bmdir = os.path.join(scriptdir, "benchmark", col_id)
+    if not os.path.exists(bmdir):
+        os.makedirs(bmdir)
     cdx_size = sum(os.path.getsize(f) for f in sys.argv[1:])
-    all_bms = {"about": {"collection": "ukwa-2000"}, "bms": {}}
+    all_bms = {"about": {"id": col_id, "name": collection}, "bms": {}}
     path = 0
     for host in [1, 2, 3, 4, 5, "all"]:
         build_profile(host, path)
@@ -84,7 +91,7 @@ if __name__ == "__main__":
         build_profile(host, path)
     benchmarking_done = time.time()
     all_bms["about"]["benchmarking_time"] = benchmarking_done - benchmarking_start
-    jsonstr = json.dumps(all_bms, indent=4, separators=(",", ": "))
-    opfpath = os.path.join(scriptdir, "benchmark", "bm-ukwa-2000.json")
+    jsonstr = json.dumps(all_bms, sort_keys=True, indent=4, separators=(",", ": "))
+    opfpath = os.path.join(bmdir, "bm-{0}.json".format(col_id))
     write_json(jsonstr, filepath=opfpath)
-    print("All Done!")
+    print("All Done! (Time: {0} minutes)".format(int(all_bms["about"]["benchmarking_time"]/60)))

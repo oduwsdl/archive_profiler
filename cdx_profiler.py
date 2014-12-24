@@ -35,10 +35,10 @@ class CDXProfiler(object):
         self.skipped_lines = 0
         self.stats = {"suburi": {}, "time": {}, "mediatype": {}, "language": {}}
 
-    def process_cdxes(self, *cdxs):
+    def process_cdxes(self, cdxs):
         """Accepts a list of CDX file names/paths and calls CDX processor on them."""
         print("CDX processing started...")
-        for cdx in cdxs[0]:
+        for cdx in cdxs:
             self._process_cdx(cdx)
 
     def calculate_stats(self):

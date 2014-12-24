@@ -20,8 +20,10 @@ if __name__ == "__main__":
     bms = OrderedDict(sorted(data["bms"].items()))
     opstr = ", ".join(["profile_id", "profiling_time", "profile_size", "suburi_keys"])
     for k, v in bms.iteritems():
-        opstr += "\n" + ", ".join([k[10:], str(v["profiling_time"]), str(v["profile_size"]), str(v["suburi_keys"])])
+        opstr += "\n" + ", ".join([k, str(v["profiling_time"]), str(v["profile_size"]), str(v["suburi_keys"])])
     print(opstr)
-    f = open("benchmark/summary.csv", "w")
+    bmdir = os.path.dirname(os.path.abspath(sys.argv[1]))
+    summary = os.path.join(bmdir, "summary-{0}.csv".format(data["about"]["id"]))
+    f = open(summary, "w")
     f.write(opstr)
     f.close()
