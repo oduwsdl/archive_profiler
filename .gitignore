@@ -58,3 +58,8 @@ target/
 
 # JSON
 *.json
+*.json.gz
+
+# Report
+*.csv
+*.png

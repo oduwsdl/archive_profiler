@@ -85,9 +85,9 @@ class CDXProfiler(object):
         try:
             entry_point[key]["surt"][surt] += 1
         except KeyError, e:
-            if e.message == key:
+            if e.args[0] == key:
                 entry_point[key] = {"surt": {surt: 1}}
-            if e.message == surt:
+            if e.args[0] == surt:
                 entry_point[key]["surt"][surt] = 1
 
     def _calculate_section_stats(self, section):

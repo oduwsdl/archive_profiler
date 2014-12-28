@@ -6,6 +6,7 @@
 
 import os
 import sys
+import gzip
 import json
 import time
 import re
@@ -13,16 +14,20 @@ import re
 from profile import Profile
 from cdx_profiler import CDXProfiler
 
-def write_json(jsonstr="{}", filepath="profile.json"):
+def write_json(jsonstr="{}", filepath="profile.json", compress=False):
     """Save JSON on local filesystem."""
     print("Writing output to " + filepath)
     f = open(filepath, "w")
     f.write(jsonstr)
     f.close()
+    if compress:
+        zf = gzip.open(filepath + ".gz", "wb")
+        zf.write(jsonstr)
+        zf.close()
 
 def build_profile(host, path):
     print("Profiling {0} with Host: {1}, Path: {2}".format(collection, host, path))
-    bm_id = "host-{0}-path-{1}".format(host, path)
+    bm_id = "H{0}P{1}".format(host, path)
     profile_id = "{0}-{1}".format(col_id, bm_id)
     profiling_start = time.time()
     p = Profile(name="{0}Hosts {1} Paths {2}".format(collection, host, path),
@@ -46,7 +51,7 @@ def build_profile(host, path):
     jsonstr = p.to_json()
     opf = "profile-{0}.json".format(profile_id)
     opfpath = os.path.join(bmdir, opf)
-    write_json(jsonstr, filepath=opfpath)
+    write_json(jsonstr, filepath=opfpath, compress=True)
     profiling_done = time.time()
     bm = {
         "profile": opf,
@@ -57,6 +62,7 @@ def build_profile(host, path):
         "cdx_lines_total": cp.total_lines,
         "cdx_lines_skipped": cp.skipped_lines,
         "profile_size": os.path.getsize(opfpath),
+        "profile_size_compressed": os.path.getsize(opfpath + ".gz"),
         "suburi_keys": len(p.stats["suburi"]),
         "time_keys": len(p.stats["time"]),
         "mediatype_keys": len(p.stats["mediatype"]),
@@ -75,8 +81,9 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Please provide path(s) to CDX file(s) as command line argument(s).")
         sys.exit(0)
+    print("\n{0} => Running: {1}\n".format(time.strftime("%Y-%m-%d %H:%M:%S"), sys.argv))
     benchmarking_start = time.time()
-    collection = "Test CDX"
+    collection = os.getenv("COLLECTION", "Test CDX")
     col_id = re.sub("\W+", "-", collection.lower())
     scriptdir = os.path.dirname(os.path.abspath(__file__))
     bmdir = os.path.join(scriptdir, "benchmark", col_id)
@@ -84,14 +91,12 @@ if __name__ == "__main__":
         os.makedirs(bmdir)
     cdx_size = sum(os.path.getsize(f) for f in sys.argv[1:])
     all_bms = {"about": {"id": col_id, "name": collection}, "bms": {}}
-    path = 0
-    for host in [1, 2, 3, 4, 5, "all"]:
-        build_profile(host, path)
-    for path in [1, 2, 3, 4, 5, "all"]:
+    host_path_pairs = [(1, 0), (2, 0), (2, 1), (2, 2), (3, 0), (3, 1), (3, 2), (3, 3), (4, 0), (5, 0), ("x", 0), ("x", 1), ("x", 2), ("x", 3), ("x", 4), ("x", 5), ("x", "x")]
+    for host, path in host_path_pairs:
         build_profile(host, path)
     benchmarking_done = time.time()
     all_bms["about"]["benchmarking_time"] = benchmarking_done - benchmarking_start
     jsonstr = json.dumps(all_bms, sort_keys=True, indent=4, separators=(",", ": "))
     opfpath = os.path.join(bmdir, "bm-{0}.json".format(col_id))
     write_json(jsonstr, filepath=opfpath)
-    print("All Done! (Time: {0} minutes)".format(int(all_bms["about"]["benchmarking_time"]/60)))
+    print("All Done! (Time: {0} minutes)\n".format(int(all_bms["about"]["benchmarking_time"]/60)))

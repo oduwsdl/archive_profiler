@@ -6,7 +6,6 @@ if (length(args) < 1) {
   quit()
 }
 fpath <- gsub("summary-|.csv$", "", args[1])
-print(paste(fpath, ".png", sep=""))
 
 profiles <- read.csv(args[1], header=T)
 
