@@ -63,6 +63,8 @@ def build_profile(host, path):
         "cdx_lines_skipped": cp.skipped_lines,
         "profile_size": os.path.getsize(opfpath),
         "profile_size_compressed": os.path.getsize(opfpath + ".gz"),
+        "urir_count": p.stats["urir"],
+        "urim_count": p.stats["urim"]["total"],
         "suburi_keys": len(p.stats["suburi"]),
         "time_keys": len(p.stats["time"]),
         "mediatype_keys": len(p.stats["mediatype"]),
