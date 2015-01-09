@@ -2,7 +2,7 @@
 
 # Author: Sawood Alam <ibnesayeed@gmail.com>
 #
-# This scripts generates multiple profiles from the same collect with varying configurations and benchmarks them.
+# This scripts generates multiple profiles from the same collection with varying configurations and benchmarks them.
 
 import os
 import sys

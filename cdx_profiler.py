@@ -65,7 +65,7 @@ class CDXProfiler(object):
     def _parse_line(self, line=""):
         """Parses single line of a CDX file and returns selected and derived attributes in a namedtuple."""
         segs = line.strip().split(" ")
-        if len(segs) == 10:
+        if len(segs) > 3:
             url = urlparse(segs[2])
             dom = tldextract.extract(segs[2])
             Segments = namedtuple("Segments", "scheme, host, domain, tld, surt, uri, time, mime")
