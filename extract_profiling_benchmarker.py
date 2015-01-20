@@ -59,8 +59,7 @@ def build_profile(host, path):
         "max_host": host,
         "max_path": path,
         "cdx_size": cdx_size,
-        "cdx_lines_total": cp.total_lines,
-        "cdx_lines_skipped": cp.skipped_lines,
+        "extract_size": extract_size,
         "profile_size": os.path.getsize(opfpath),
         "profile_size_compressed": os.path.getsize(opfpath + ".gz"),
         "urir_count": p.stats["urir"],
@@ -81,17 +80,18 @@ def build_profile(host, path):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Please provide path(s) to CDX file(s) as command line argument(s).")
+        print("Please provide path(s) to CDX Extraxt file(s) as command line argument(s).")
         sys.exit(0)
     print("\n{0} => Running: {1}\n".format(time.strftime("%Y-%m-%d %H:%M:%S"), sys.argv))
     benchmarking_start = time.time()
-    collection = os.getenv("COLLECTION", "Test CDX")
+    collection = os.getenv("COLLECTION", "Test CDX Extraxt")
     col_id = re.sub("\W+", "-", collection.lower())
     scriptdir = os.path.dirname(os.path.abspath(__file__))
-    bmdir = os.path.join(scriptdir, "benchmark", col_id)
+    bmdir = os.path.join(scriptdir, "extractbm", col_id)
     if not os.path.exists(bmdir):
         os.makedirs(bmdir)
-    cdx_size = sum(os.path.getsize(f) for f in sys.argv[1:])
+    extract_size = sum(os.path.getsize(f) for f in sys.argv[1:])
+    cdx_size = sum(os.path.getsize(f.replace(".curi", ".cdx")) for f in sys.argv[1:])
     all_bms = {"about": {"id": col_id, "name": collection}, "bms": {}}
     host_path_pairs = [(1, 0), (2, 0), (2, 1), (2, 2), (3, 0), (3, 1), (3, 2), (3, 3), (4, 0), (5, 0), ("x", 0), ("x", 1), ("x", 2), ("x", 3), ("x", 4), ("x", 5), ("x", "x")]
     for host, path in host_path_pairs:
