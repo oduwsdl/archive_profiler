@@ -43,7 +43,7 @@ def build_profile(host, path):
     cp = CDXExtractProfiler(max_host_segments=host,
                             max_path_segments=path,
                             global_stats=True)
-    cp.process_cdxes(sys.argv[1:])
+    cp.process_cdx_extracts(sys.argv[1:])
     cdx_processing_done = time.time()
     cp.calculate_stats()
     stats_calculation_done = time.time()
