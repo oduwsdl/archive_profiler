@@ -21,16 +21,24 @@ def write_json(jsonstr="{}", filepath="profile.json", compress=False):
     f.write(jsonstr)
     f.close()
     if compress:
-        zf = gzip.open(filepath + ".gz", "wb")
-        zf.write(jsonstr)
-        zf.close()
+        with open(filepath, "rb") as f_in:
+            f_out = gzip.open(filepath + ".gz", "wb")
+            while True:
+                block = f_in.read(1048576)
+                if block == "":
+                    break
+                f_out.write(block)
+            f_out.close()
+        #zf = gzip.open(filepath + ".gz", "wb")
+        #zf.write(jsonstr)
+        #zf.close()
 
 def build_profile(host, path):
     print("Profiling {0} with Host: {1}, Path: {2}".format(collection, host, path))
     bm_id = "H{0}P{1}".format(host, path)
     profile_id = "{0}-{1}".format(col_id, bm_id)
     profiling_start = time.time()
-    p = Profile(name="{0}Hosts {1} Paths {2}".format(collection, host, path),
+    p = Profile(name="{0} Hosts {1} Paths {2}".format(collection, host, path),
                 description="{0} collection profile with maximum {1} host and {2} path secgment(s).".format(collection, host, path),
                 homepage="http://www.webarchive.org.uk/ukwa/",
                 accesspoint="http://www.webarchive.org.uk/wayback/",
