@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+
+# Author: Sawood Alam <ibnesayeed@gmail.com>
+#
+# This scripts generates Sub-URIs from extracted URI-Rs based on various profile configurations.
+
+import os
+import sys
+import time
+
+from surt import surt
+from suburi_generator import generate_suburis
+
+def generate_all_suburis(host, path):
+    print("Generating Sub-URIs of {0} with Host: {1}, Path: {2}".format(collection, host, path))
+    filename = "{0}-H{1}P{2}.suburi".format(collection, host, path)
+    f = open(os.path.join(opdir, filename), "w")
+    for extr in sys.argv[1:]:
+        with open(extr) as f:
+            for line in f:
+                count, entry = line.split()
+                f.write("\n".join(generate_suburis(surt(entry), max_host_segments=host, max_path_segments=path)) + "\n")
+    f.close()
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Please provide path(s) to CDX Extraxt file(s) as command line argument(s).")
+        sys.exit(0)
+    print("\n{0} => Running: {1}\n".format(time.strftime("%Y-%m-%d %H:%M:%S"), sys.argv))
+    suburidir = os.getenv("SUBURIDIR", "/tmp/suburis")
+    collection = os.getenv("COLLECTION", "0000")
+    opdir = os.path.join(suburidir, collection)
+    if not os.path.exists(opdir):
+        os.makedirs(opdir)
+    host_path_pairs = [(1, 0), (2, 0), (2, 1), (2, 2), (3, 0), (3, 1), (3, 2), (3, 3), (4, 0), (5, 0), ("x", 0), ("x", 1), ("x", 2), ("x", 3), ("x", 4), ("x", 5), ("x", "x")]
+    for host, path in host_path_pairs:
+        generate_all_suburis(host, path)
+    print("All Done!")
