@@ -14,13 +14,13 @@ from suburi_generator import generate_suburis
 def generate_all_suburis(host, path):
     print("Generating Sub-URIs of {0} with Host: {1}, Path: {2}".format(collection, host, path))
     filename = "{0}-H{1}P{2}.suburi".format(collection, host, path)
-    f = open(os.path.join(opdir, filename), "w")
+    opf = open(os.path.join(opdir, filename), "w")
     for extr in sys.argv[1:]:
         with open(extr) as f:
             for line in f:
                 count, entry = line.split()
-                f.write("\n".join(generate_suburis(surt(entry), max_host_segments=host, max_path_segments=path)) + "\n")
-    f.close()
+                opf.write("\n".join(generate_suburis(surt(entry), max_host_segments=host, max_path_segments=path)) + "\n")
+    opf.close()
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
