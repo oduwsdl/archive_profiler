@@ -34,5 +34,8 @@ if __name__ == "__main__":
         os.makedirs(opdir)
     host_path_pairs = [(1, 0), (2, 0), (2, 1), (2, 2), (3, 0), (3, 1), (3, 2), (3, 3), (4, 0), (5, 0), ("x", 0), ("x", 1), ("x", 2), ("x", 3), ("x", 4), ("x", 5), ("x", "x")]
     for host, path in host_path_pairs:
+        gen_start = time.time()
         generate_all_suburis(host, path)
+        gen_end = time.time()
+        print("It took {0} minutes.".format(round((gen_end - gen_start)/60, 2)))
     print("All Done!")
