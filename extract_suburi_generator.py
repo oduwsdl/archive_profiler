@@ -19,7 +19,10 @@ def generate_all_suburis(host, path):
         with open(extr) as f:
             for line in f:
                 count, entry = line.split()
-                opf.write("\n".join(generate_suburis(surt(entry), max_host_segments=host, max_path_segments=path)) + "\n")
+                try:
+                    opf.write("\n".join(generate_suburis(surt(entry), max_host_segments=host, max_path_segments=path)) + "\n")
+                except:
+                    print("Something went wrong while processing " + line)
     opf.close()
 
 if __name__ == "__main__":

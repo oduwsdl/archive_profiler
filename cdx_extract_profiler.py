@@ -58,11 +58,14 @@ class CDXExtractProfiler(object):
 
     def _update_ds(self, count, entry):
         """Update data structure after processing a line from the CDX"""
-        suburis = generate_suburis(surt(entry), max_host_segments=self.max_host_segments, max_path_segments=self.max_path_segments)
-        for s in suburis:
-            self._update_record("suburi", s, count)
-        #self._update_record("time", entry.time[0:6], entry.surt)
-        #self._update_record("mediatype", entry.mime, entry.surt)
+        try:
+            suburis = generate_suburis(surt(entry), max_host_segments=self.max_host_segments, max_path_segments=self.max_path_segments)
+            for s in suburis:
+                self._update_record("suburi", s, count)
+            #self._update_record("time", entry.time[0:6], entry.surt)
+            #self._update_record("mediatype", entry.mime, entry.surt)
+        except:
+            print("Something went wrong while processing " + entry)
 
     def _update_record(self, key_type, key, count):
         """Insert or update raw records to keep track of URI-R and URI-M counts under each key."""
