@@ -30,7 +30,11 @@ class Profile(object):
 
     def load(self, profile=None):
         """Load a JSON profile and populate the profile object"""
-        print("TODO: Yet to implement!")
+        try:
+            self.__dict__ = json.load(profile)
+            print("JSON profile loaded!")
+        except:
+            print("Could load JSON profile!")
 
     def to_json(self):
         """Serializes processed profile object in JSON format."""
