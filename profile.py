@@ -33,8 +33,9 @@ class Profile(object):
         try:
             self.__dict__ = json.load(profile)
             print("JSON profile loaded!")
-        except:
-            print("Could load JSON profile!")
+        except e:
+            print("Could not load JSON profile!")
+            print(str(e))
 
     def to_json(self):
         """Serializes processed profile object in JSON format."""
