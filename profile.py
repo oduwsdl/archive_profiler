@@ -33,7 +33,7 @@ class Profile(object):
         try:
             self.__dict__ = json.load(profile)
             print("JSON profile loaded!")
-        except e:
+        except Exception as e:
             print("Could not load JSON profile!")
             print(str(e))
 
