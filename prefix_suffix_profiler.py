@@ -24,12 +24,13 @@ if __name__ == "__main__":
             try:
                 ext = tldextract.extract(line)
                 urlseg = urlparse(line)
+                reg_dom = ext.registered_domain.encode('utf-8')
                 subdom_len = len([x for x in ext.subdomain.split(".") if x])
                 path_len = len([x for x in urlseg.path.split("/") if x])
                 query_len = len([x for x in urlseg.params.split("&") if x])
                 first_path_char = urlseg.path.strip("\n\r/")[:1]
-                urif.write("{0}/{1}/{2}\n".format(subdom_len, ext.registered_domain, path_len + query_len))
-                urifp.write("{0}/{1}/{2}{3}\n".format(subdom_len, ext.registered_domain, first_path_char, path_len + query_len))
+                urif.write("{0}/{1}/{2}\n".format(subdom_len, reg_dom, path_len + query_len))
+                urifp.write("{0}/{1}/{2}{3}\n".format(subdom_len, reg_dom, first_path_char, path_len + query_len))
             except:
                 print("Something went wrong while processing " + line)
     urif.close()
