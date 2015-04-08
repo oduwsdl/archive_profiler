@@ -20,8 +20,8 @@ if __name__ == "__main__":
     urif = open(url_file.replace(".url", ".urifix"), "w")
     urifp = open(url_file.replace(".url", ".urifixp"), "w")
     with open(url_file) as f:
-        try:
-            for line in f:
+        for line in f:
+            try:
                 ext = tldextract.extract(line)
                 urlseg = urlparse(line)
                 subdom_len = len([x for x in ext.subdomain.split(".") if x])
@@ -30,8 +30,8 @@ if __name__ == "__main__":
                 first_path_char = urlseg.path.strip("\n\r/")[:1]
                 urif.write("{0}/{1}/{2}\n".format(subdom_len, ext.registered_domain, path_len + query_len))
                 urifp.write("{0}/{1}/{2}{3}\n".format(subdom_len, ext.registered_domain, first_path_char, path_len + query_len))
-        except:
-            print("Something went wrong while processing " + line)
+            except:
+                print("Something went wrong while processing " + line)
     urif.close()
     urifp.close()
     gen_end = time.time()
