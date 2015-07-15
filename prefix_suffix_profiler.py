@@ -18,8 +18,8 @@ if __name__ == "__main__":
     url_file = sys.argv[1]
     print("\n{0} => Converting {1}\n".format(time.strftime("%Y-%m-%d %H:%M:%S"), url_file))
     gen_start = time.time()
-    urif = open(url_file.replace(".url", ".urifix"), "w")
-    urifp = open(url_file.replace(".url", ".urifixp"), "w")
+    urif = open(url_file.replace(".urir", ".urifix"), "w")
+    urifp = open(url_file.replace(".urir", ".urifixp"), "w")
     fil_count = 0
     with open(url_file) as f:
         for line in f:

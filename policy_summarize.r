@@ -27,26 +27,28 @@ f2si2 <- function (number, rounding=F, sep=" ", fmt="%3.0f") {
 
 summarize <- function (field, ylabel="") {
   fid <- gsub("[^a-zA-Z0-9]+", "-", field)
-  fname <- file.path(args[1], gsub("FID", fid, "extract-summary-FID-lineplot.png"))
+  fname <- file.path(args[1], gsub("FID", fid, "policy-summary-FID-lineplot.png"))
   print(fname)
 
   png(fname, height=400, width=600, pointsize=18)
 
   ypos <- pretty(c(0, max(combined[[field]])), n=10)
   ylb <- lapply(ypos, f2si2, rounding=T, sep="")
-  xlb <- profiles[[1]][["profile_id"]]
+  xlb <- profiles[[1]][["policy"]]
 
 #  par(mar=c(4,4,1,1)+0.1)
   par(mar=c(4,3,1,1)+0.1, mgp=c(1.5,0.5,0), lwd=2)
 
   plot(profiles[[1]][[field]], type="n", xaxt="n", yaxt="n", ylab=ylabel, xlab="", ylim=c(0, max(ypos)))
-  axis(1, at=c(1:length(xlb)), labels=xlb, las=3)
-  axis(2, at=ypos, labels=ylb)
-  title(xlab="Max Segments (H: Host, P: Path)", mgp=c(2.8, 0.5, 0))
   for(i in 1:length(profiles)) {
     lines(profiles[[i]][[field]], type='b', pch=symbols[i], col=cols[i])
   }
-  par(family='mono', cex=0.8)
+  #axis(1, at=c(1:length(xlb)), labels=xlb, las=3)
+  axis(2, at=ypos, labels=ylb)
+  title(xlab="Profile Policies", mgp=c(2.8, 0.5, 0))
+  par(family='mono', font.axis=2, font=2)
+  axis(1, at=c(1:length(xlb)), labels=xlb, las=3)
+  par(cex=0.8)
   legend("topleft", inset=0.01, y.intersp=0.8, title="UKWA CDX Collection", pch=c(NA, symbols), col=c(NA, cols), legend=c("Year CDX_Size URI-R_Count URI-M/R", proflegs))
 
   dev.off()
@@ -54,7 +56,7 @@ summarize <- function (field, ylabel="") {
 
 correlate <- function (fldnames=c(), fid="all") {
   fields <- tolower(gsub("\\W", "", gsub(" ", "_", fldnames)))
-  fname <- file.path(args[1], gsub("FID", fid, "extract-correlation-FID-lineplot.png"))
+  fname <- file.path(args[1], gsub("FID", fid, "policy-correlation-FID-lineplot.png"))
   print(fname)
 
   png(fname, height=1000, width=800, pointsize=16)
@@ -71,7 +73,7 @@ correlate <- function (fldnames=c(), fid="all") {
     plot(rep(1, each=length(xlb)), type="n", xaxt="n", yaxt="n", ylab="", xlab="", ylim=c(0, 1))
     axis(1, at=c(1:length(xlb)), labels=xlb, tck=-0.02, mgp=c(1, 0.3, 0))
     axis(2, at=c(0:4)/4, labels=c(0:4)/4, tck=-0.02, mgp=c(1, 0.3, 0))
-    text(1.5, 0.9, hps[[i]][["profile_id"]][[1]], cex=1.2)
+    text(1.5, 0.9, hps[[i]][["policy"]][[1]], cex=1.2)
 
     for(j in 1:length(fields)) {
       lines(hps[[i]][[fields[j]]]/max(hps[[i]][[fields[j]]]), type='b', pch=symbols[j], col=cols[j])
@@ -84,7 +86,7 @@ correlate <- function (fldnames=c(), fid="all") {
 growth <- function (xfld, yfld, xlabel="", ylabel="") {
   xfid <- gsub("[^a-zA-Z0-9]+", "-", xfld)
   yfid <- gsub("[^a-zA-Z0-9]+", "-", yfld)
-  fname <- file.path(args[1], gsub("YFID", yfid, gsub("XFID", xfid, "extract-growth-XFID-vs-YFID-fit-lineplot.png")))
+  fname <- file.path(args[1], gsub("YFID", yfid, gsub("XFID", xfid, "policy-growth-XFID-vs-YFID-fit-lineplot.png")))
   print(fname)
 
   png(fname, height=400, width=600, pointsize=18)
@@ -102,8 +104,6 @@ growth <- function (xfld, yfld, xlabel="", ylabel="") {
   plot(hps[[1]][[xfld]], hps[[1]][[yfld]], type="n", xaxt="n", yaxt="n", ylab=ylabel, xlab=xlabel, ylim=c(0, max(ypos)))
   axis(1, at=xpos, labels=xlb)
   axis(2, at=ypos, labels=ylb)
-  #par(family='mono')
-  legend("topleft", inset=0.01, cex=0.9, title="Profiles", pch=gpch, col=gcol, ncol=3, legend=profiles[[1]][["profile_id"]])
 
   profnames <- names(hps)
 
@@ -116,8 +116,11 @@ growth <- function (xfld, yfld, xlabel="", ylabel="") {
     #print(summary(fit))
     #print(coef(fit)["(Intercept)"])
     #print(profnames[[i]])
-    print(paste(profnames[[i]], "x:", round(coef(fit)["x"], 3)))
+    print(paste(profnames[[i]], "x:", round(coef(fit)["x"], 8)))
   }
+
+  par(family='mono', cex=0.8, font=2)
+  legend("topleft", inset=0.01, title="Profile Policies", pch=gpch, col=gcol, ncol=4, legend=profiles[[1]][["policy"]])
 
   dev.off()
 }
@@ -125,7 +128,7 @@ growth <- function (xfld, yfld, xlabel="", ylabel="") {
 relate <- function (xfld, yfld, xlabel="", ylabel="") {
   xfid <- gsub("[^a-zA-Z0-9]+", "-", xfld)
   yfid <- gsub("[^a-zA-Z0-9]+", "-", yfld)
-  fname <- file.path(args[1], gsub("YFID", yfid, gsub("XFID", xfid, "extract-relate-XFID-vs-YFID-lineplot.png")))
+  fname <- file.path(args[1], gsub("YFID", yfid, gsub("XFID", xfid, "policy-relate-XFID-vs-YFID-lineplot.png")))
   print(fname)
 
   png(fname, height=400, width=600, pointsize=18)
@@ -152,22 +155,25 @@ relate <- function (xfld, yfld, xlabel="", ylabel="") {
 
 files <- list.files(path=args[1], pattern="summary-.*.csv$", full.names=T, recursive=F)
 profiles <- lapply(files, read.csv, header=T)
+#profiles <- lapply(profiles, function(df){df[order(df$keys_count),]})
 profiles <- lapply(profiles, transform, urim_urir_ratio=urim_count/urir_count)
 names(profiles) <- gsub("^.*summary-|\\.csv$", "", files)
 combined <- do.call("rbind", profiles)
-hps <- split(combined, f=combined$profile_id)
+combined$policy <- factor(combined$policy, levels=unique(combined$policy))
+hps <- split(combined, f=combined$policy)
 cols <- rainbow(length(profiles))
 symbols <- c(0:(length(profiles)-1))
 hpref <- hps[[1]]
 proflegs <- paste(substr(hpref$collection, 7, 11), " ", f2si2(hpref$cdx_size, rounding=T, sep="", fmt="%5.1f"), "    ", f2si2(hpref$urir_count, rounding=T, sep="", fmt="%5.1f"), " ", round(hpref$urim_urir_ratio, 3), sep=" ")
 
-summarize("suburi_keys", "Number of Sub-URI Keys")
+summarize("keys_count", "Number of Keys")
 summarize("profile_size", "Profile Size")
 summarize("profile_size_compressed", "Profile Size (Compressed)")
-summarize("profiling_time", "Profiling Time (Seconds)")
+# summarize("profiling_time", "Profiling Time (Seconds)")
 
-# growth("cdx_size", "suburi_keys", "CDX Size", "Number of Sub-URI Keys")
-growth("urir_count", "suburi_keys", "URI-R Count", "Number of Sub-URI Keys")
+# growth("cdx_size", "keys_count", "CDX Size", "Number of Keys")
+growth("urir_count", "keys_count", "URI-R Count", "Number of Keys")
+growth("urim_count", "profiling_time", "URI-M Count", "Profiling Time (Seconds)")
 
 # relate("cdx_size", "urir_count", "CDX Size", "URI-R Count")
 relate("cdx_size", "urim_count", "CDX Size", "URI-M Count")
@@ -179,8 +185,8 @@ relate("urim_count", "urir_count", "URI-M Count", "URI-R Count")
 #             "Sub-URI Keys",
 #             "Profile Size",
 #             "Profile Size Compressed",
-#             "CDX Processing Time",
-#             "Stats Calculation Time",
+#             "Key Generation Time",
+#             "Profile Generation Time",
 #             "Profiling Time",
 #             "CDX Size",
 #             "Extract Size"),
