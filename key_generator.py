@@ -5,6 +5,7 @@
 # This class selects appropriate methdos for generating keys based on the policy.
 
 import re
+import time
 import tldextract
 from urlparse import urlparse
 from surt import surt
@@ -14,7 +15,7 @@ class KeyGenerator(object):
 
     def __init__(self, policy="H1P0"):
         """Initialize a basic archive profile object."""
-        print("Initializing the profiler...")
+        print("{0} => Initializing the profiler with policy {1}".format(time.strftime("%Y-%m-%d %H:%M:%S"), policy))
         self.policy_map = {
             "HmPn": self._hmpn,
             "DDom": self._ddom,
@@ -120,9 +121,10 @@ class KeyGenerator(object):
 
     def generate_keys_from_files(self, inputs, output):
         for inp in inputs:
+            print("{0} => Generating keys from {1}".format(time.strftime("%Y-%m-%d %H:%M:%S"), inp))
             with open(inp) as f:
                 for line in f:
-                    k = self.generate_key(line)
+                    k = self.generate_key(line.split(" ")[0])
                     if k:
                         output.write(k + "\n")
 

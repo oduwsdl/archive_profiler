@@ -5,13 +5,14 @@
 # This class creates structure of the profile, loads JSON profiles, and serializes the profile object to JSON.
 
 import json
+import time
 
 class Profile(object):
     """Basic archive profile to be evolved by the profiler."""
 
     def __init__(self, name="", description="", homepage="", accesspoint="", memento_compliance="", timegate="", timemap="", established="", profile_updated="", **kwargs):
         """Initialize a basic archive profile object."""
-        print("Initializing the profile...")
+        print("{0} => Initializing the profile for {1}".format(time.strftime("%Y-%m-%d %H:%M:%S"), name))
         self.about = {
             "name": name,
             "description": description,

@@ -2,57 +2,21 @@
 
 # Author: Sawood Alam <ibnesayeed@gmail.com>
 #
-# This scripts instantiate a Profile object, (optionally populates it from a JSON profile,) updates it using different profilres, and serializes it in JSON.
+# This scripts generates one or more profiles from the same collection with different policies based on the configurations.
 
 import os
 import sys
-import pprint
+import gzip
 import json
 import time
-import requests
+import re
 import ConfigParser
 
 from profile import Profile
-from cdx_profiler import CDXProfiler
+from key_generator import KeyGenerator
 
-def print_help():
-    """Print help text."""
-    print("\nTo profile a CDX archive:")
-    print("  Single CDX file    :    main.py abc.cdx")
-    print("  Multiple CDX files :    main.py abc.cdx def.cdx ...")
-    print("  Multiple CDX files :    main.py *.cdx abc/*.cdx ...\n")
-
-def write_json(jsonstr="{}", filepath="profile.json"):
-    """Save JSON profile on local filesystem."""
-    print("Writing output to " + filepath)
-    f = open(filepath, "w")
-    f.write(jsonstr)
-    f.close()
-
-def post_gist(jsonstr="{}", filename="profile.json"):
-    """Post JSON profile to GitHub as a Gist."""
-    gist = {
-        "description": "An archive profile created on "+time.strftime("%Y-%m-%d at %H:%M:%S")+".",
-        "public": True,
-        "files": {
-            filename: {
-                "content": jsonstr
-            }
-        }
-    }
-    req = requests.post(config.get("github", "endpoint"),
-                        data=json.dumps(gist),
-                        auth=(config.get("github", "user"), config.get("github", "token")))
-    if req.status_code == 201:
-        print("Writing to GitHub: " + req.json()["html_url"])
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print_help()
-        sys.exit(0)
-    scriptdir = os.path.dirname(os.path.abspath(__file__))
-    config = ConfigParser.ConfigParser()
-    config.read(os.path.join(scriptdir, "config.ini"))
+def build_profile(policy):
+    print("{0} => Profiling with policy {1}".format(time.strftime("%Y-%m-%d %H:%M:%S"), policy))
     p = Profile(name=config.get("archive", "name"),
                 description=config.get("archive", "description"),
                 homepage=config.get("archive", "homepage"),
@@ -62,20 +26,44 @@ if __name__ == "__main__":
                 timemap=config.get("archive", "timemap"),
                 established=config.get("archive", "established"),
                 profile_updated=time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                mechanism="https://oduwsdl.github.io/terms/mechanism#cdx")
-    cp = CDXProfiler(max_host_segments=config.get("profile", "max_host_segments"),
-                     max_path_segments=config.get("profile", "max_path_segments"),
-                     global_stats=config.getboolean("profile", "generate_global_stats"))
-    cp.process_cdxes(sys.argv[1:])
-    cp.calculate_stats()
-    p.stats = cp.stats
-    if config.getboolean("profile", "generate_key_stats"):
-        p.count_keys()
-    jsonstr = p.to_json()
-    opf = "profile-"+time.strftime("%Y%m%d-%H%M%S")+".json"
-    if config.getboolean("output", "write_to_file"):
-        write_json(jsonstr, filepath=os.path.join(scriptdir, "json", opf))
-    else:
-        print(jsonstr)
-    if config.getboolean("output", "write_to_github"):
-        post_gist(jsonstr, filename=opf)
+                source="cdx",
+                type="urikey#{0}".format(policy))
+    opkfn = "intermediate-{0}.keys".format(policy)
+    opkfpath = os.path.join(tempdir, opkfn)
+    print("{0} => Storing intermediate keys in {1}".format(time.strftime("%Y-%m-%d %H:%M:%S"), opkfpath))
+    opkf = open(opkfpath, "w")
+    kg = KeyGenerator(policy)
+    kg.generate_keys_from_files(sys.argv[1:], opkf)
+    opkf.close()
+    oppfn = "profile-{0}.cdxj".format(policy)
+    oppfpath = os.path.join(profiledir, oppfn)
+    print("{0} => Generating profile in {1}".format(time.strftime("%Y-%m-%d %H:%M:%S"), oppfpath))
+    oppf = open(oppfpath, "w")
+    preamble = "@context https://oduwsdl.github.io/contexts/archiveprofile.jsonld\n@id {0}\n".format(p.about["homepage"])
+    pabout = json.dumps(p.about, sort_keys=True)
+    oppf.write(preamble + "@about " + pabout + "\n")
+    oppf.close()
+    os.system('LC_ALL=C sort ' + opkfpath + ' | uniq -c | awk \'{ print $2 " {\\"frequency\\": "$1", \\"spread\\": 1}" }\' >> ' + oppfpath)
+    print("{0} => Storing compressed profile in {1}".format(time.strftime("%Y-%m-%d %H:%M:%S"), oppfpath + ".gz"))
+    os.system('gzip -c ' + oppfpath + ' > ' + oppfpath + '.gz')
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("\nPlease do not forget to customize the config.ini file.\nUsage:\n  ./main.py /path/to/cdx/*.cdx\n")
+        sys.exit(0)
+    print("\n{0} => Profiling: {1}\n".format(time.strftime("%Y-%m-%d %H:%M:%S"), sys.argv))
+    scriptdir = os.path.dirname(os.path.abspath(__file__))
+    config = ConfigParser.ConfigParser()
+    config.read(os.path.join(scriptdir, "config.ini"))
+    if config.get("archive", "name") == "Test Archive":
+        print("WARNING: You should update the config.ini file, unless it is a test run.\n")
+    profiledir = os.path.join(scriptdir, "profiles")
+    if not os.path.exists(profiledir):
+        os.makedirs(profiledir)
+    tempdir = os.path.join(scriptdir, "tmp")
+    if not os.path.exists(tempdir):
+        os.makedirs(tempdir)
+    policies = config.get("profile", "policies").split()
+    for policy in policies:
+        build_profile(policy)
+    print("{0} => All Done!".format(time.strftime("%Y-%m-%d %H:%M:%S")))
