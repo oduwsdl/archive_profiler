@@ -50,14 +50,14 @@ class KeyGenerator(object):
         ext = tldextract.extract(url)
         urlseg = urlparse("http://" + url)
         reg_dom = surt(ext.registered_domain)
-        if reg_dom[0].isalpha():
+        if reg_dom[0].isalpha() and ")/" in reg_dom:
             return reg_dom
 
     def _dsub(self, url):
         ext = tldextract.extract(url)
         urlseg = urlparse("http://" + url)
         reg_dom = surt(ext.registered_domain)
-        if reg_dom[0].isalpha():
+        if reg_dom[0].isalpha() and ")/" in reg_dom:
             subdom_len = 0
             if ext.subdomain:
                 subdom_len = ext.subdomain.count(".") + 1
@@ -67,7 +67,7 @@ class KeyGenerator(object):
         ext = tldextract.extract(url)
         urlseg = urlparse("http://" + url)
         reg_dom = surt(ext.registered_domain)
-        if reg_dom[0].isalpha():
+        if reg_dom[0].isalpha() and ")/" in reg_dom:
             subdom_len = path_len = 0
             if ext.subdomain:
                 subdom_len = ext.subdomain.count(".") + 1
@@ -79,7 +79,7 @@ class KeyGenerator(object):
         ext = tldextract.extract(url)
         urlseg = urlparse("http://" + url)
         reg_dom = surt(ext.registered_domain)
-        if reg_dom[0].isalpha():
+        if reg_dom[0].isalpha() and ")/" in reg_dom:
             subdom_len = path_len = query_len = 0
             if ext.subdomain:
                 subdom_len = ext.subdomain.count(".") + 1
@@ -93,7 +93,7 @@ class KeyGenerator(object):
         ext = tldextract.extract(url)
         urlseg = urlparse("http://" + url)
         reg_dom = surt(ext.registered_domain)
-        if reg_dom[0].isalpha():
+        if reg_dom[0].isalpha() and ")/" in reg_dom:
             subdom_len = path_len = query_len = 0
             path_init = urlseg.path.strip("\n\r/")[:1]
             if ext.subdomain:
@@ -107,7 +107,7 @@ class KeyGenerator(object):
             return "{0}{1}/{2}/{3}/{4}".format(reg_dom, subdom_len, path_len, query_len, path_init)
 
     def _suburi(self, surt, max_host_segments=None, max_path_segments=None):
-        if surt[:2].isalpha():
+        if surt[:2].isalpha() and ")/" in surt:
             host, path = surt.split("?")[0].split(")", 1)
             host_segments = host.strip(",").split(",")
             if not isinstance(max_host_segments, int):
